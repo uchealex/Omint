@@ -22,6 +22,11 @@ install.packages("dplyr")
 ```
 
 ## How to Use
+Download the software "App.R" in Git. Then download the files ("lipid_protein_hyperbolicDistance2.csv", "protein_metabolite_hyperbolicDistance2.csv", and "metabolite_lipid_hyperbolicDistance2.csv") required to run the software here [https://www.dropbox.com/scl/fi/klj0lqbxvx54w1tz1m4uu/Omint_files.zip?rlkey=yvwegkizuja25n4vq3icm7dvd&st=4jsaqr3c&dl=0]. Change the directories in the code as follows:
+      lipid_protein_df <- read.csv('Directory for lipid_protein_hyperbolicDistance2.csv', row.names = 1, check.names = FALSE)
+      protein_metabolite_df <- read.csv('Directory for protein_metabolite_hyperbolicDistance2.csv', row.names = 1, check.names = FALSE)
+      metabolite_lipid_df <- read.csv('Directory for metabolite_lipid_hyperbolicDistance2.csv', row.names = 1, check.names = FALSE).
+Then click "Run App".
 1. **Input Data**:
    - Select the omic type (Lipid, Protein, or Metabolite).
    - Input comma-separated omic IDs for lipids, proteins, or metabolites.
@@ -33,7 +38,7 @@ install.packages("dplyr")
 3. **Results**:
    - The ranked list of entities will be displayed.
    - Valid subsets (entities that are valid for the selected omic type) will also be shown.
-   - You can download the results as CSV files for each entity type (e.g., "Protein (Lipids)", "Metabolites (Proteins)").
+   - You can download the results as CSV files for each entity type (e.g., "Lipid (Proteins)", "Metabolites (Proteins)").
 
 ## Data Input Example
 - Lipids with Swisslipid IDs: `SLM:000000347,SLM:000000505,SLM:000000795`
