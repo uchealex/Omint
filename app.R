@@ -80,10 +80,11 @@ server <- function(input, output) {
   observeEvent(input$submit, {
     withProgress(message = 'Processing...', value = 0, {
       incProgress(0.1, detail = "Loading data...")
-      lipid_protein_df <- read.csv('/home/uchenna/Documents/Rstudio/Omint/lipid_protein_hyperbolicDistance2.csv', row.names = 1, check.names = FALSE)
-      protein_metabolite_df <- read.csv('/home/uchenna/Documents/Rstudio/Omint/protein_metabolite_hyperbolicDistance2.csv', row.names = 1, check.names = FALSE)
-      metabolite_lipid_df <- read.csv('/home/uchenna/Documents/Rstudio/Omint/metabolite_lipid_hyperbolicDistance2.csv', row.names = 1, check.names = FALSE)
       
+      #Change the Directories of the file to the location of the downloaded files
+      lipid_protein_df <- read.csv('Directory for lipid_protein_hyperbolicDistance2.csv', row.names = 1, check.names = FALSE)
+      protein_metabolite_df <- read.csv('Directory for protein_metabolite_hyperbolicDistance2.csv', row.names = 1, check.names = FALSE)
+      metabolite_lipid_df <- read.csv('Directory for metabolite_lipid_hyperbolicDistance2.csv', row.names = 1, check.names = FALSE)      
       lipids_subset <- process_input(input$lipids_input)
       proteins_subset <- process_input(input$proteins_input)
       metabolites_subset <- process_input(input$metabolites_input)
