@@ -81,10 +81,67 @@ server <- function(input, output) {
     withProgress(message = 'Processing...', value = 0, {
       incProgress(0.1, detail = "Loading data...")
       
-      #Change the Directories of the file to the location of the downloaded files
-      lipid_protein_df <- read.csv('Directory for lipid_protein_hyperbolicDistance2.csv', row.names = 1, check.names = FALSE)
-      protein_metabolite_df <- read.csv('Directory for protein_metabolite_hyperbolicDistance2.csv', row.names = 1, check.names = FALSE)
-      metabolite_lipid_df <- read.csv('Directory for metabolite_lipid_hyperbolicDistance2.csv', row.names = 1, check.names = FALSE)      
+      # Load the data
+      data <- read.csv('/home/uchenna/Documents/python/nodes_multi_omics_category2.csv')
+      
+      # Separate the data by categories
+      proteins <- data %>% filter(category == "protein")
+      lipids <- data %>% filter(category == "lipid")
+      metabolites <- data %>% filter(category == "metabolite")
+      
+      # Initialize distance matrices
+      lipid_protein_df <- matrix(NA, nrow = nrow(proteins), ncol = nrow(lipids),
+                                 dimnames = list(proteins$id, lipids$id))
+      metabolite_lipid_df <- matrix(NA, nrow = nrow(metabolites), ncol = nrow(lipids),
+                                    dimnames = list(metabolites$id, lipids$id))
+      protein_metabolite_df <- matrix(NA, nrow = nrow(proteins), ncol = nrow(metabolites),
+                                      dimnames = list(proteins$id, metabolites$id))
+      
+      # Function to calculate hyperbolic distance
+      hyperbolic_distance <- function(ZI_r, ZI_theta, ZJ_r, ZJ_theta) {
+        delta <- pi - abs(pi - abs(ZI_theta - ZJ_theta))
+        d <- cosh(ZI_r) * cosh(ZJ_r) - sinh(ZI_r) * sinh(ZJ_r) * cos(delta)
+        d[d < 1] <- 1
+        d <- acosh(d)
+        d[ZI_r == ZJ_r & ZI_theta == ZJ_theta] <- 0
+        return(d)
+      }
+      
+      # Compute hyperbolic distances between lipids and proteins
+      for (i in 1:nrow(proteins)) {
+        for (j in 1:nrow(lipids)) {
+          lipid_protein_df[i, j] <- hyperbolic_distance(
+            ZI_r = proteins$r[i], ZI_theta = proteins$theta[i],
+            ZJ_r = lipids$r[j], ZJ_theta = lipids$theta[j]
+          )
+        }
+      }
+      
+      # Compute hyperbolic distances between metabolites and lipids
+      for (i in 1:nrow(metabolites)) {
+        for (j in 1:nrow(lipids)) {
+          metabolite_lipid_df[i, j] <- hyperbolic_distance(
+            ZI_r = metabolites$r[i], ZI_theta = metabolites$theta[i],
+            ZJ_r = lipids$r[j], ZJ_theta = lipids$theta[j]
+          )
+        }
+      }
+      
+      # Compute hyperbolic distances between proteins and metabolites
+      for (i in 1:nrow(proteins)) {
+        for (j in 1:nrow(metabolites)) {
+          protein_metabolite_df[i, j] <- hyperbolic_distance(
+            ZI_r = proteins$r[i], ZI_theta = proteins$theta[i],
+            ZJ_r = metabolites$r[j], ZJ_theta = metabolites$theta[j]
+          )
+        }
+      }
+      
+      # Convert matrices to data frames for easier handling
+      lipid_protein_df <- as.data.frame(lipid_protein_df, stringsAsFactors = FALSE)
+      metabolite_lipid_df <- as.data.frame(metabolite_lipid_df, stringsAsFactors = FALSE)
+      protein_metabolite_df <- as.data.frame(protein_metabolite_df, stringsAsFactors = FALSE)
+      
       lipids_subset <- process_input(input$lipids_input)
       proteins_subset <- process_input(input$proteins_input)
       metabolites_subset <- process_input(input$metabolites_input)
