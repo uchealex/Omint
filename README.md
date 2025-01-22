@@ -47,7 +47,7 @@ Then click "Run App".
 ## Code Overview
 - **UI Components**: Includes radio buttons, numeric inputs, text inputs for omic IDs, and action buttons.
 - **Server Logic**:
-  - The server processes the input data, calculates distance rankings using preloaded CSV distance matrices (`lipid_protein_hyperbolicDistance2.csv`, `protein_metabolite_hyperbolicDistance2.csv`, `metabolite_lipid_hyperbolicDistance2.csv`).
+  - The server processes the input data and calculates distance rankings.
   - Ranks are computed based on the smallest distance values and are displayed in sorted order.
   - Downloadable buttons allow users to save results.
 
