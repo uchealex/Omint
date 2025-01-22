@@ -82,7 +82,8 @@ server <- function(input, output) {
       incProgress(0.1, detail = "Loading data...")
       
       # Load the data
-      data <- read.csv('/home/uchenna/Documents/python/nodes_multi_omics_category2.csv')
+      #Change the Directories of the file to the location of the downloaded file
+      data <- read.csv('Directory for nodes_multi_omics_category2.csv')
       
       # Separate the data by categories
       proteins <- data %>% filter(category == "protein")
