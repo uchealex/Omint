@@ -23,6 +23,7 @@ install.packages("dplyr")
 
 ## How to Use
 Download the "App.R" software and the file "nodes_multi_omics_category2.csv" in Git. Change the directory in the code as follows:
+      
       data <- read.csv('Directory for nodes_multi_omics_category2.csv')
       
 Then click "Run App".
