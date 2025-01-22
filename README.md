@@ -22,10 +22,9 @@ install.packages("dplyr")
 ```
 
 ## How to Use
-Download the software "App.R" in Git. Then download the files ("lipid_protein_hyperbolicDistance2.csv", "protein_metabolite_hyperbolicDistance2.csv", and "metabolite_lipid_hyperbolicDistance2.csv") required to run the software here [https://www.dropbox.com/scl/fi/klj0lqbxvx54w1tz1m4uu/Omint_files.zip?rlkey=yvwegkizuja25n4vq3icm7dvd&st=4jsaqr3c&dl=0]. Change the directories in the code as follows:
-      lipid_protein_df <- read.csv('Directory for lipid_protein_hyperbolicDistance2.csv', row.names = 1, check.names = FALSE)
-      protein_metabolite_df <- read.csv('Directory for protein_metabolite_hyperbolicDistance2.csv', row.names = 1, check.names = FALSE)
-      metabolite_lipid_df <- read.csv('Directory for metabolite_lipid_hyperbolicDistance2.csv', row.names = 1, check.names = FALSE).
+Download the "App.R" software and the file "nodes_multi_omics_category2.csv" in Git. Change the directory in the code as follows:
+      data <- read.csv('Directory for nodes_multi_omics_category2.csv')
+      
 Then click "Run App".
 1. **Input Data**:
    - Select the omic type (Lipid, Protein, or Metabolite).
@@ -52,7 +51,3 @@ Then click "Run App".
   - Ranks are computed based on the smallest distance values and are displayed in sorted order.
   - Downloadable buttons allow users to save results.
 
-## Files
-1. **lipid_protein_hyperbolicDistance2.csv**: Distance matrix for lipids and proteins.
-2. **protein_metabolite_hyperbolicDistance2.csv**: Distance matrix for proteins and metabolites.
-3. **metabolite_lipid_hyperbolicDistance2.csv**: Distance matrix for metabolites and lipids.
