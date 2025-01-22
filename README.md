@@ -30,7 +30,7 @@ Then click "Run App".
 1. **Input Data**:
    - Select the omic type (Lipid, Protein, or Metabolite).
    - Input comma-separated omic IDs for lipids, proteins, or metabolites.
-   - Specify the number of smallest distances to consider. NOTE: it should be greater than or equal to the number of omic IDs above.
+   - Specify the number of smallest distances to consider. NOTE: it should be less than or equal to the number of omic IDs above.
 
 2. **Processing**:
    - Click the "Process" button to start processing the data. The app will calculate the distances and rank the entities based on their connection to the selected omic type.
@@ -41,9 +41,8 @@ Then click "Run App".
    - You can download the results as CSV files for each entity type (e.g., "Lipid (Proteins)", "Metabolites (Proteins)").
 
 ## Data Input Example
-- Lipids with Swisslipid IDs: `SLM:000000347,SLM:000000505,SLM:000000795`
-- Proteins with UniProt IDs: `A0A0B4J2D5,A0AV02,A0AV96`
-- Metabolites with PubChem IDs: `pubchem:863,pubchem:87642,pubchem:171548`
+- Lipids with Swisslipid IDs: `SLM:000000347,SLM:000000505,SLM:000000795``
+- Number of smallest distances to consider: a number less than or equal to 3
 
 ## Code Overview
 - **UI Components**: Includes radio buttons, numeric inputs, text inputs for omic IDs, and action buttons.
