@@ -24,34 +24,37 @@ ui <- fluidPage(
     
     mainPanel(
       uiOutput("resultsPanel"),
-      uiOutput("validSubsetPanel")  # New output to display the valid_subset
+      uiOutput("validSubsetPanel")  #output to display the valid_subset
     )
   )
 )
 
 # Define server logic required to rank entities
 server <- function(input, output) {
-  
+  #Create variables with reactive values 
   result_data <- reactiveVal(NULL)
   valid_subsets_data <- reactiveVal(NULL)  # Store the valid subsets
   
-  # Function to clean, deduplicate, and split the user input
+  # Function to clean, de-duplicate, and split the user input
   process_input <- function(input_string) {
     unique(trimws(unlist(strsplit(input_string, ","))))
   }
   
   # Function to get ranked list of entities from a given subset
   get_ranked_list <- function(subset, df, n, key, match_on = "index") {
+    
+    #Extract valid subset. That is, subsets in map
     if (match_on == "index") {
-      valid_subset <- subset[subset %in% rownames(df)]
+      valid_subset <- rownames(df)
     } else {
-      valid_subset <- subset[subset %in% colnames(df)]
+      valid_subset <- colnames(df)
     }
     
     if (length(valid_subset) == 0) {
       return(list(valid_subset = valid_subset, data = data.frame(entity = character(), rank = numeric(), evidence = character(), stringsAsFactors = FALSE)))
     }
     
+    #Function to return the rank and evidence based on n least distances among all subset distance-values
     subset_smallest_values <- function(col) {
       subset_values <- col[valid_subset]
       smallest_indices <- order(subset_values)[1:n]
@@ -62,9 +65,10 @@ server <- function(input, output) {
       return(list(rank = rank, evidence = evidence))
     }
     
+    #Process dataframe df by applying subset_smallest_values function on the row or col
     results <- apply(df, ifelse(match_on == "index", 2, 1), subset_smallest_values)
-    ranks <- sapply(results, function(x) x$rank)
-    evidences <- sapply(results, function(x) x$evidence)
+    ranks <- sapply(results, function(x) x$rank) #Extracts the rank component of each element of results
+    evidences <- sapply(results, function(x) x$evidence) #Extracts the evidence component of each element of results
     
     df_weighted_sorted <- data.frame(
       entity = names(ranks),
@@ -82,21 +86,56 @@ server <- function(input, output) {
       incProgress(0.1, detail = "Loading data...")
       
       # Load the data
-      #Change the Directories of the file to the location of the downloaded file
-      data <- read.csv('Directory for nodes_multi_omics_category2.csv')
+      data <- read.csv('/home/uchenna/Documents/python/nodes_multi_omics_category2.csv')
+      #lipids_subset <- process_input(input$lipids_input)
+      #proteins_subset <- process_input(input$proteins_input)
+      #metabolites_subset <- process_input(input$metabolites_input)
       
       # Separate the data by categories
-      proteins <- data %>% filter(category == "protein")
-      lipids <- data %>% filter(category == "lipid")
-      metabolites <- data %>% filter(category == "metabolite")
+      if (input$omic_type == "protein") {
+        proteins_subset <- process_input(input$proteins_input)
+        
+        proteins1 <- data %>% filter(category == "protein")
+        proteins <- proteins1 %>% filter(id %in% proteins_subset) #Extract only intersections of proteins_subset and proteins
+        lipids <- data %>% filter(category == "lipid")
+        metabolites <- data %>% filter(category == "metabolite")
+        
+        # Initialize distance matrices
+        lipid_protein_df <- matrix(NA, nrow = nrow(proteins), ncol = nrow(lipids),
+                                   dimnames = list(proteins$id, lipids$id))
+        protein_metabolite_df <- matrix(NA, nrow = nrow(proteins), ncol = nrow(metabolites),
+                                        dimnames = list(proteins$id, metabolites$id))
+      }
       
-      # Initialize distance matrices
-      lipid_protein_df <- matrix(NA, nrow = nrow(proteins), ncol = nrow(lipids),
-                                 dimnames = list(proteins$id, lipids$id))
-      metabolite_lipid_df <- matrix(NA, nrow = nrow(metabolites), ncol = nrow(lipids),
-                                    dimnames = list(metabolites$id, lipids$id))
-      protein_metabolite_df <- matrix(NA, nrow = nrow(proteins), ncol = nrow(metabolites),
-                                      dimnames = list(proteins$id, metabolites$id))
+      if (input$omic_type == "lipid") {
+        lipids_subset <- process_input(input$lipids_input)
+        
+        lipids1 <- data %>% filter(category == "lipid")
+        lipids <- lipids1 %>% filter(id %in% lipids_subset) #Extract only intersections of lipids_subset and lipids
+        proteins <- data %>% filter(category == "protein")
+        metabolites <- data %>% filter(category == "metabolite")
+        
+        # Initialize distance matrices
+        lipid_protein_df <- matrix(NA, nrow = nrow(proteins), ncol = nrow(lipids),
+                                   dimnames = list(proteins$id, lipids$id))
+        metabolite_lipid_df <- matrix(NA, nrow = nrow(metabolites), ncol = nrow(lipids),
+                                      dimnames = list(metabolites$id, lipids$id))
+      }
+      
+      if (input$omic_type == "metabolite") {
+        metabolites_subset <- process_input(input$metabolites_input)
+        
+        metabolites1 <- data %>% filter(category == "metabolite")
+        metabolites <- metabolites1 %>% filter(id %in% metabolites_subset) #Extract only intersections of metabolites_subset and metabolites
+        proteins <- data %>% filter(category == "protein")
+        lipids <- data %>% filter(category == "lipid")
+        
+        # Initialize distance matrices
+        metabolite_lipid_df <- matrix(NA, nrow = nrow(metabolites), ncol = nrow(lipids),
+                                      dimnames = list(metabolites$id, lipids$id))
+        protein_metabolite_df <- matrix(NA, nrow = nrow(proteins), ncol = nrow(metabolites),
+                                        dimnames = list(proteins$id, metabolites$id))
+      }
       
       # Function to calculate hyperbolic distance
       hyperbolic_distance <- function(ZI_r, ZI_theta, ZJ_r, ZJ_theta) {
@@ -107,46 +146,86 @@ server <- function(input, output) {
         d[ZI_r == ZJ_r & ZI_theta == ZJ_theta] <- 0
         return(d)
       }
-      
-      # Compute hyperbolic distances between lipids and proteins
-      for (i in 1:nrow(proteins)) {
-        for (j in 1:nrow(lipids)) {
-          lipid_protein_df[i, j] <- hyperbolic_distance(
-            ZI_r = proteins$r[i], ZI_theta = proteins$theta[i],
-            ZJ_r = lipids$r[j], ZJ_theta = lipids$theta[j]
-          )
+      #compute lipid_protein_df and metabolite_lipid_df if input subset are lipids
+      if (input$omic_type == "lipid") {
+        # Compute hyperbolic distances between lipids and proteins
+        for (i in 1:nrow(proteins)) {
+          for (j in 1:nrow(lipids)) {
+            lipid_protein_df[i, j] <- hyperbolic_distance(
+              ZI_r = proteins$r[i], ZI_theta = proteins$theta[i],
+              ZJ_r = lipids$r[j], ZJ_theta = lipids$theta[j]
+            )
+          }
         }
-      }
-      
-      # Compute hyperbolic distances between metabolites and lipids
-      for (i in 1:nrow(metabolites)) {
-        for (j in 1:nrow(lipids)) {
-          metabolite_lipid_df[i, j] <- hyperbolic_distance(
-            ZI_r = metabolites$r[i], ZI_theta = metabolites$theta[i],
-            ZJ_r = lipids$r[j], ZJ_theta = lipids$theta[j]
-          )
+        
+        # Compute hyperbolic distances between metabolites and lipids
+        for (i in 1:nrow(metabolites)) {
+          for (j in 1:nrow(lipids)) {
+            metabolite_lipid_df[i, j] <- hyperbolic_distance(
+              ZI_r = metabolites$r[i], ZI_theta = metabolites$theta[i],
+              ZJ_r = lipids$r[j], ZJ_theta = lipids$theta[j]
+            )
+          }
         }
-      }
-      
-      # Compute hyperbolic distances between proteins and metabolites
-      for (i in 1:nrow(proteins)) {
-        for (j in 1:nrow(metabolites)) {
-          protein_metabolite_df[i, j] <- hyperbolic_distance(
-            ZI_r = proteins$r[i], ZI_theta = proteins$theta[i],
-            ZJ_r = metabolites$r[j], ZJ_theta = metabolites$theta[j]
-          )
-        }
-      }
-      
-      # Convert matrices to data frames for easier handling
       lipid_protein_df <- as.data.frame(lipid_protein_df, stringsAsFactors = FALSE)
       metabolite_lipid_df <- as.data.frame(metabolite_lipid_df, stringsAsFactors = FALSE)
-      protein_metabolite_df <- as.data.frame(protein_metabolite_df, stringsAsFactors = FALSE)
+      }
+      
+      #compute lipid_protein_df and protein_metabolite_df if input subset are proteins
+      if (input$omic_type == "protein") {
+        # Compute hyperbolic distances between lipids and proteins
+        for (i in 1:nrow(proteins)) {
+          for (j in 1:nrow(lipids)) {
+            lipid_protein_df[i, j] <- hyperbolic_distance(
+              ZI_r = proteins$r[i], ZI_theta = proteins$theta[i],
+              ZJ_r = lipids$r[j], ZJ_theta = lipids$theta[j]
+            )
+          }
+        }
+        
+        # Compute hyperbolic distances between proteins and metabolites
+        for (i in 1:nrow(proteins)) {
+          for (j in 1:nrow(metabolites)) {
+            protein_metabolite_df[i, j] <- hyperbolic_distance(
+              ZI_r = proteins$r[i], ZI_theta = proteins$theta[i],
+              ZJ_r = metabolites$r[j], ZJ_theta = metabolites$theta[j]
+            )
+          }
+        }
+      lipid_protein_df <- as.data.frame(lipid_protein_df, stringsAsFactors = FALSE)
+      protein_metabolite_df <- as.data.frame(protein_metabolite_df, stringsAsFactors = FALSE)  
+      }  
+      #compute protein_metabolite_df and metabolite_lipid_df if input subset are metabolites
+      if (input$omic_type == "metabolite") {
+        # Compute hyperbolic distances between metabolites and lipids
+        for (i in 1:nrow(metabolites)) {
+          for (j in 1:nrow(lipids)) {
+            metabolite_lipid_df[i, j] <- hyperbolic_distance(
+              ZI_r = metabolites$r[i], ZI_theta = metabolites$theta[i],
+              ZJ_r = lipids$r[j], ZJ_theta = lipids$theta[j]
+            )
+          }
+        }
+        # Compute hyperbolic distances between proteins and metabolites
+        for (i in 1:nrow(proteins)) {
+          for (j in 1:nrow(metabolites)) {
+            protein_metabolite_df[i, j] <- hyperbolic_distance(
+              ZI_r = proteins$r[i], ZI_theta = proteins$theta[i],
+              ZJ_r = metabolites$r[j], ZJ_theta = metabolites$theta[j]
+            )
+          }
+        }
+      metabolite_lipid_df <- as.data.frame(metabolite_lipid_df, stringsAsFactors = FALSE)
+      protein_metabolite_df <- as.data.frame(protein_metabolite_df, stringsAsFactors = FALSE)  
+      }
+      # Convert matrices to data frames for easier handling
+      #lipid_protein_df <- as.data.frame(lipid_protein_df, stringsAsFactors = FALSE)
+      #metabolite_lipid_df <- as.data.frame(metabolite_lipid_df, stringsAsFactors = FALSE)
+      #protein_metabolite_df <- as.data.frame(protein_metabolite_df, stringsAsFactors = FALSE)  
       
       lipids_subset <- process_input(input$lipids_input)
       proteins_subset <- process_input(input$proteins_input)
       metabolites_subset <- process_input(input$metabolites_input)
-      
       n <- input$n
       output_data <- list()
       valid_subsets <- list()
@@ -262,3 +341,5 @@ server <- function(input, output) {
 
 # Run the application 
 shinyApp(ui = ui, server = server)
+
+      
