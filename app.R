@@ -1,6 +1,10 @@
 library(shiny)
 library(dplyr)
 
+# Load mapping data
+protein_tissueLocation_map <- read.csv('/home/uchenna/Documents/python/protein_tissueLocation_clean.csv')
+
+
 # Define UI for the application
 ui <- fluidPage(
   titlePanel("Omint: Omics Integration"),
@@ -8,6 +12,15 @@ ui <- fluidPage(
   
   sidebarLayout(
     sidebarPanel(
+      # New multi-select dropdown for selecting tissue locations, sorted alphabetically
+      selectInput(
+        inputId = "tissue_location",
+        label = "Select Tissue Location:",
+        choices = sort(unique(protein_tissueLocation_map$tissue_location)),
+        selected = sort(unique(protein_tissueLocation_map$tissue_location))[1],
+        multiple = TRUE
+      ),
+      
       radioButtons(
         "omic_type",
         "Select Omic Type:",
@@ -24,10 +37,12 @@ ui <- fluidPage(
     
     mainPanel(
       uiOutput("resultsPanel"),
-      uiOutput("validSubsetPanel")  #output to display the valid_subset
+      uiOutput("validSubsetPanel")  # output to display the valid_subset
     )
   )
 )
+
+
 
 # Define server logic required to rank entities
 server <- function(input, output) {
@@ -97,6 +112,17 @@ server <- function(input, output) {
         
         proteins1 <- data %>% filter(category == "protein")
         proteins <- proteins1 %>% filter(id %in% proteins_subset) #Extract only intersections of proteins_subset and proteins
+        if (!is.null(input$tissue_location) && length(input$tissue_location) > 0) { #if the user selected tissue locations
+          #further filter the protein to include only the ones in the selected tissue locations
+          # First, extract the proteins from the mapping data corresponding to the selected tissue locations
+          selected_proteins <- protein_tissueLocation_map %>%
+            filter(tissue_location %in% input$tissue_location) %>%
+            pull(protein)
+          
+          # Then, filter proteins1 to keep only those whose 'id' appears in the selected proteins list
+          proteins <- proteins %>%
+            filter(id %in% selected_proteins)
+        }  
         lipids <- data %>% filter(category == "lipid")
         metabolites <- data %>% filter(category == "metabolite")
         
@@ -112,7 +138,19 @@ server <- function(input, output) {
         
         lipids1 <- data %>% filter(category == "lipid")
         lipids <- lipids1 %>% filter(id %in% lipids_subset) #Extract only intersections of lipids_subset and lipids
+        
         proteins <- data %>% filter(category == "protein")
+        if (!is.null(input$tissue_location) && length(input$tissue_location) > 0) { #if the user selected tissue locations
+          #further filter the protein to include only the ones in the selected tissue locations
+          # First, extract the proteins from the mapping data corresponding to the selected tissue locations
+          selected_proteins <- protein_tissueLocation_map %>%
+            filter(tissue_location %in% input$tissue_location) %>%
+            pull(protein)
+          
+          # Then, filter proteins1 to keep only those whose 'id' appears in the selected proteins list
+          proteins <- proteins %>%
+            filter(id %in% selected_proteins)
+        }  
         metabolites <- data %>% filter(category == "metabolite")
         
         # Initialize distance matrices
@@ -127,7 +165,20 @@ server <- function(input, output) {
         
         metabolites1 <- data %>% filter(category == "metabolite")
         metabolites <- metabolites1 %>% filter(id %in% metabolites_subset) #Extract only intersections of metabolites_subset and metabolites
+        
         proteins <- data %>% filter(category == "protein")
+        if (!is.null(input$tissue_location) && length(input$tissue_location) > 0) { #if the user selected tissue locations
+          #further filter the protein to include only the ones in the selected tissue locations
+          # First, extract the proteins from the mapping data corresponding to the selected tissue locations
+          selected_proteins <- protein_tissueLocation_map %>%
+            filter(tissue_location %in% input$tissue_location) %>%
+            pull(protein)
+          
+          # Then, filter proteins1 to keep only those whose 'id' appears in the selected proteins list
+          proteins <- proteins %>%
+            filter(id %in% selected_proteins)
+        }  
+        
         lipids <- data %>% filter(category == "lipid")
         
         # Initialize distance matrices
