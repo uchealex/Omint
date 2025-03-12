@@ -3,6 +3,7 @@
 Omint is a Shiny application designed for integrating omics data. It allows users to analyze relationships between different omic types: Lipid, Protein, and Metabolite. The application provides a ranked list of entities (proteins, lipids, or metabolites) based on their proximity to other omics, calculated using hyperbolic distance metrics. Users can input their data (e.g., Swisslipid IDs, UniProt IDs, PubChem IDs) and obtain ranked results along with downloadable CSV files for further analysis.
 
 ## Features
+- **Tissue Locations Selection**: Choose Tissue location(s) from a drop-down list of Tissues, to indicate the cell.
 - **Omic Type Selection**: Choose between "Lipid", "Protein", or "Metabolite" to analyze the omic connections.
 - **Distance Ranking**: Rank related omic entities based on proximity (e.g., Lipids vs Proteins, Metabolites vs Lipids).
 - **Subset Processing**: Upload lists of omic IDs (e.g., lipid, protein, metabolite) to analyze.
