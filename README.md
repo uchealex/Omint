@@ -83,6 +83,9 @@ This example demonstrates how users can analyze proteins in the heart muscle ass
 ## Code Overview
 - **UI Components**: Includes radio buttons, numeric inputs, text inputs for omic IDs, and action buttons.
 - **Server Logic**:
+
+For citations:
+Anyaegbunam, U. A., Vagiona, A.-C., ten Cate, V., Bauer, K., Schmidlin, T., Distler, U., Tenzer, S., Araldi, E., Bindila, L., Wild, P., & Andrade-Navarro, M. A. (2025). A Map of the Lipid–Metabolite–Protein Network to Aid Multi-Omics Integration. Biomolecules, 15(4), 484. https://doi.org/10.3390/biom15040484
   - The server processes the input data and calculates distance rankings.
   - Ranks are computed based on the smallest distance values and are displayed in sorted order.
   - Downloadable buttons allow users to save results.
